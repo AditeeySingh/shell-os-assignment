@@ -59,23 +59,27 @@ public class Main {
 
                 String redirectFile = null;
 
-                for (int i = 0; i < parts.length; i++) {
-                    if (parts[i].equals(">") || parts[i].equals("1>")) {
-                        redirectFile = parts[i + 1];
-                        break;
-                    }
-                }
+for (int i = 0; i < parts.length; i++) {
+    if (parts[i].equals(">") ||
+        parts[i].equals("1>") ||
+        parts[i].equals("2>")) {
+        redirectFile = parts[i + 1];
+        break;
+    }
+}
 
                 StringBuilder output = new StringBuilder();
 
                 int limit = parts.length;
 
                 for (int i = 0; i < parts.length; i++) {
-                    if (parts[i].equals(">") || parts[i].equals("1>")) {
-                        limit = i;
-                        break;
-                    }
-                }
+    if (parts[i].equals(">") ||
+        parts[i].equals("1>") ||
+        parts[i].equals("2>")) {
+        limit = i;
+        break;
+    }
+}
 
                 for (int i = 1; i < limit; i++) {
                     if (i > 1) {
