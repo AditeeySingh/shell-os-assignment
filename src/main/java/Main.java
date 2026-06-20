@@ -29,9 +29,9 @@ public class Main {
                 String directory = input.substring(3);
 
                 if (directory.equals("~")) {
-                     currentDirectory = Paths.get(System.getenv("HOME"));
-                        continue;
-                    }
+                    currentDirectory = Paths.get(System.getenv("HOME"));
+                    continue;
+                }
 
                 Path newPath;
 
@@ -51,7 +51,13 @@ public class Main {
             }
 
             if (input.startsWith("echo ")) {
-                System.out.println(input.substring(5));
+                String text = input.substring(5);
+
+                if (text.startsWith("'") && text.endsWith("'")) {
+                    text = text.substring(1, text.length() - 1);
+                }
+
+                System.out.println(text);
                 continue;
             }
 
