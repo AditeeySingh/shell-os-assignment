@@ -29,9 +29,9 @@ public class Main {
                 String directory = input.substring(3);
 
                 if (directory.equals("~")) {
-                    currentDirectory = Paths.get(System.getProperty("user.home"));
-                    continue;
-                }
+                     currentDirectory = Paths.get(System.getenv("HOME"));
+                        continue;
+                    }
 
                 Path newPath;
 
