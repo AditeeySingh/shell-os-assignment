@@ -34,30 +34,44 @@ public class Main {
                 continue;
             }
             if (input.equals("jobs")) {
-                List<Integer> finished = new ArrayList<>();
+                    List<Integer> finished = new ArrayList<>();
 
-                for (Map.Entry<Integer, Process> entry : jobs.entrySet()) {
-                    int id = entry.getKey();
-                    Process process = entry.getValue();
+                    List<Integer> activeJobs = new ArrayList<>();
 
-                    if (process.isAlive()) {
+                    for (Map.Entry<Integer, Process> entry : jobs.entrySet()) {
+                        if (entry.getValue().isAlive()) {
+                            activeJobs.add(entry.getKey());
+                        } else {
+                            finished.add(entry.getKey());
+                        }
+                    }
+
+                    for (int i = 0; i < activeJobs.size(); i++) {
+                        int id = activeJobs.get(i);
+
+                        String marker = " ";
+
+                        if (i == activeJobs.size() - 1) {
+                            marker = "+";
+                        } else if (i == activeJobs.size() - 2) {
+                            marker = "-";
+                        }
+
                         System.out.printf(
-                            "[%d]+  Running                 %s &%n",
+                            "[%d]%s  Running                 %s &%n",
                             id,
+                            marker,
                             jobCommands.get(id)
                         );
-                    } else {
-                        finished.add(id);
                     }
-                }
 
-                for (Integer id : finished) {
-                    jobs.remove(id);
-                    jobCommands.remove(id);
-                }
+                    for (Integer id : finished) {
+                        jobs.remove(id);
+                        jobCommands.remove(id);
+                    }
 
-                continue;
-            }
+                    continue;
+                }
 
             if (input.startsWith("cd ")) {
                 String directory = input.substring(3);
