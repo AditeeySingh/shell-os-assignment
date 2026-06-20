@@ -248,44 +248,46 @@ if (redirectIndex != -1) {
 
                     Process process = processBuilder.start();
 
+                    if (background) {
+                        int jobId = nextJobId++;
+
+                        jobs.put(jobId, process);
+                        jobCommands.put(jobId, input);
+
+                        System.out.println("[" + jobId + "] " + process.pid());
+                        continue;
+                    }
+
                     String stdout = new String(process.getInputStream().readAllBytes());
                     String stderr = new String(process.getErrorStream().readAllBytes());
 
-                        if (background) {
-    int jobId = nextJobId++;
+                    process.waitFor();
 
-    jobs.put(jobId, process);
-    jobCommands.put(jobId, input);
+                    if (stdoutFile != null) {
+                        Files.writeString(
+                                currentDirectory.resolve(stdoutFile),
+                                stdout,
+                                StandardOpenOption.CREATE,
+                                appendStdout
+                                        ? StandardOpenOption.APPEND
+                                        : StandardOpenOption.TRUNCATE_EXISTING
+                        );
+                    } else {
+                        System.out.print(stdout);
+                    }
 
-    System.out.println("[" + jobId + "] " + process.pid());
-    continue;
-}
-
-process.waitFor();
-
-                        if (stdoutFile != null) {
-    Files.writeString(
-            currentDirectory.resolve(stdoutFile),
-            stdout,
-            StandardOpenOption.CREATE,
-            appendStdout ? StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING
-    );
-} else {
-    System.out.print(stdout);
-}
-
-if (stderrFile != null) {
-    Files.writeString(
-        currentDirectory.resolve(stderrFile),
-        stderr,
-        StandardOpenOption.CREATE,
-        appendStderr
-                ? StandardOpenOption.APPEND
-                : StandardOpenOption.TRUNCATE_EXISTING
-);
-} else if (!stderr.isEmpty()) {
-    System.err.print(stderr);
-}
+                    if (stderrFile != null) {
+                        Files.writeString(
+                                currentDirectory.resolve(stderrFile),
+                                stderr,
+                                StandardOpenOption.CREATE,
+                                appendStderr
+                                        ? StandardOpenOption.APPEND
+                                        : StandardOpenOption.TRUNCATE_EXISTING
+                        );
+                    } else if (!stderr.isEmpty()) {
+                        System.err.print(stderr);
+                    }
                 } catch (IOException e) {
                     System.out.println(input + ": command not found");
                 }
