@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 public class Main {
@@ -16,6 +17,11 @@ public class Main {
                 System.exit(0);
             }
 
+            if (input.equals("pwd")) {
+                System.out.println(Paths.get("").toAbsolutePath().normalize());
+                continue;
+            }
+
             if (input.startsWith("echo ")) {
                 System.out.println(input.substring(5));
                 continue;
@@ -30,6 +36,8 @@ public class Main {
                     System.out.println("exit is a shell builtin");
                 } else if (command.equals("type")) {
                     System.out.println("type is a shell builtin");
+                } else if (command.equals("pwd")) {
+                    System.out.println("pwd is a shell builtin");
                 } else {
                     String path = findExecutable(command);
 
