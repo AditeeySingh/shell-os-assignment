@@ -1,7 +1,9 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -55,16 +57,44 @@ public class Main {
             if (input.startsWith("echo ")) {
                 String[] parts = parseCommand(input);
 
+                String redirectFile = null;
+
+                for (int i = 0; i < parts.length; i++) {
+                    if (parts[i].equals(">") || parts[i].equals("1>")) {
+                        redirectFile = parts[i + 1];
+                        break;
+                    }
+                }
+
                 StringBuilder output = new StringBuilder();
 
-                for (int i = 1; i < parts.length; i++) {
+                int limit = parts.length;
+
+                for (int i = 0; i < parts.length; i++) {
+                    if (parts[i].equals(">") || parts[i].equals("1>")) {
+                        limit = i;
+                        break;
+                    }
+                }
+
+                for (int i = 1; i < limit; i++) {
                     if (i > 1) {
                         output.append(" ");
                     }
                     output.append(parts[i]);
                 }
 
-                System.out.println(output);
+                if (redirectFile != null) {
+                    Files.writeString(
+                            currentDirectory.resolve(redirectFile),
+                            output + System.lineSeparator(),
+                            StandardOpenOption.CREATE,
+                            StandardOpenOption.TRUNCATE_EXISTING
+                    );
+                } else {
+                    System.out.println(output);
+                }
+
                 continue;
             }
 
@@ -100,6 +130,19 @@ public class Main {
                 continue;
             }
 
+            String redirectFile = null;
+
+            for (int i = 0; i < parts.length; i++) {
+                if (parts[i].equals(">") || parts[i].equals("1>")) {
+                    redirectFile = parts[i + 1];
+
+                    String[] temp = new String[i];
+                    System.arraycopy(parts, 0, temp, 0, i);
+                    parts = temp;
+                    break;
+                }
+            }
+
             String executable = findExecutable(parts[0]);
 
             if (executable != null) {
@@ -108,8 +151,22 @@ public class Main {
                     processBuilder.directory(currentDirectory.toFile());
 
                     Process process = processBuilder.start();
-                    process.getInputStream().transferTo(System.out);
+
+                    String output =
+                            new String(process.getInputStream().readAllBytes());
+
                     process.waitFor();
+
+                    if (redirectFile != null) {
+                        Files.writeString(
+                                currentDirectory.resolve(redirectFile),
+                                output,
+                                StandardOpenOption.CREATE,
+                                StandardOpenOption.TRUNCATE_EXISTING
+                        );
+                    } else {
+                        System.out.print(output);
+                    }
                 } catch (IOException e) {
                     System.out.println(input + ": command not found");
                 }
@@ -122,70 +179,70 @@ public class Main {
     }
 
     private static String[] parseCommand(String input) {
-    List<String> tokens = new ArrayList<>();
-    StringBuilder current = new StringBuilder();
+        List<String> tokens = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
 
-    boolean inSingleQuote = false;
-    boolean inDoubleQuote = false;
+        boolean inSingleQuote = false;
+        boolean inDoubleQuote = false;
 
-    for (int i = 0; i < input.length(); i++) {
-        char ch = input.charAt(i);
+        for (int i = 0; i < input.length(); i++) {
+            char ch = input.charAt(i);
 
-        if (ch == '\\') {
-            if (inSingleQuote) {
-                current.append(ch);
-                continue;
-            }
+            if (ch == '\\') {
+                if (inSingleQuote) {
+                    current.append(ch);
+                    continue;
+                }
 
-            if (inDoubleQuote) {
-                if (i + 1 < input.length()) {
-                    char next = input.charAt(i + 1);
+                if (inDoubleQuote) {
+                    if (i + 1 < input.length()) {
+                        char next = input.charAt(i + 1);
 
-                    if (next == '\\' || next == '"' || next == '$' || next == '\n') {
-                        current.append(next);
-                        i++;
+                        if (next == '\\' || next == '"' || next == '$' || next == '\n') {
+                            current.append(next);
+                            i++;
+                        } else {
+                            current.append('\\');
+                        }
                     } else {
                         current.append('\\');
                     }
-                } else {
-                    current.append('\\');
+                    continue;
+                }
+
+                if (i + 1 < input.length()) {
+                    current.append(input.charAt(i + 1));
+                    i++;
                 }
                 continue;
             }
 
-            if (i + 1 < input.length()) {
-                current.append(input.charAt(i + 1));
-                i++;
+            if (ch == '\'' && !inDoubleQuote) {
+                inSingleQuote = !inSingleQuote;
+                continue;
             }
-            continue;
-        }
 
-        if (ch == '\'' && !inDoubleQuote) {
-            inSingleQuote = !inSingleQuote;
-            continue;
-        }
-
-        if (ch == '"' && !inSingleQuote) {
-            inDoubleQuote = !inDoubleQuote;
-            continue;
-        }
-
-        if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
-            if (current.length() > 0) {
-                tokens.add(current.toString());
-                current.setLength(0);
+            if (ch == '"' && !inSingleQuote) {
+                inDoubleQuote = !inDoubleQuote;
+                continue;
             }
-        } else {
-            current.append(ch);
+
+            if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
+                if (current.length() > 0) {
+                    tokens.add(current.toString());
+                    current.setLength(0);
+                }
+            } else {
+                current.append(ch);
+            }
         }
-    }
 
-    if (current.length() > 0) {
-        tokens.add(current.toString());
-    }
+        if (current.length() > 0) {
+            tokens.add(current.toString());
+        }
 
-    return tokens.toArray(new String[0]);
-}
+        return tokens.toArray(new String[0]);
+    }
 
     private static String findExecutable(String command) {
         String pathEnv = System.getenv("PATH");
