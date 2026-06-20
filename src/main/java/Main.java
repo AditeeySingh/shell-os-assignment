@@ -41,6 +41,7 @@ public class Main {
 
             if (input.equals("pwd")) {
                 System.out.println(currentDirectory);
+                    reapJobs();
                 continue;
             }
          if (input.equals("jobs")) {
@@ -193,10 +194,9 @@ for (int i = 0; i < parts.length; i++) {
 
 System.out.println(output);
 
-reapJobs();
 }
 
-
+    reapJobs();
                 continue;
             }
 
@@ -224,7 +224,7 @@ reapJobs();
                         System.out.println(command + ": not found");
                     }
                 }
-
+reapJobs();
                 continue;
             }
 
