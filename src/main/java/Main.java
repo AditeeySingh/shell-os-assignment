@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
@@ -39,6 +40,21 @@ public class Main {
                     }
                 }
 
+                continue;
+            }
+
+            String[] parts = input.split(" ");
+            String executable = findExecutable(parts[0]);
+
+            if (executable != null) {
+                try {
+                    ProcessBuilder processBuilder = new ProcessBuilder(parts);
+                    Process process = processBuilder.start();
+                    process.getInputStream().transferTo(System.out);
+                    process.waitFor();
+                } catch (IOException e) {
+                    System.out.println(input + ": command not found");
+                }
                 continue;
             }
 
