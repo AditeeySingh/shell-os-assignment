@@ -51,15 +51,17 @@ public class Main {
             }
 
             if (input.startsWith("echo ")) {
-                String text = input.substring(5);
+                 String text = input.substring(5);
 
-                if (text.startsWith("'") && text.endsWith("'")) {
-                    text = text.substring(1, text.length() - 1);
-                }
-
-                System.out.println(text);
-                continue;
+                     if (text.startsWith("'") && text.endsWith("'")) {
+                         text = text.substring(1, text.length() - 1);
+                     } else {
+                 text = String.join(" ", text.trim().split("\\s+"));
             }
+
+    System.out.println(text);
+    continue;
+}
 
             if (input.startsWith("type ")) {
                 String command = input.substring(5);
