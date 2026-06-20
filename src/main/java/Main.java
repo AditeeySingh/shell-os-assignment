@@ -23,9 +23,9 @@ public class Main {
         while (true) {
             List<Integer> completedJobs = new ArrayList<>();
 
-List<Integer> allJobs = new ArrayList<>(jobs.keySet());
+List<Integer> currentJobs = new ArrayList<>(jobs.keySet());
 
-for (Integer id : allJobs) {
+for (Integer id : currentJobs) {
     Process process = jobs.get(id);
 
     if (process != null && !process.isAlive()) {
@@ -56,6 +56,8 @@ for (Integer id : completedJobs) {
                 continue;
             }
          if (input.equals("jobs")) {
+
+    List<Integer> allJobs = new ArrayList<>(jobs.keySet());
     List<Integer> toRemove = new ArrayList<>();
 
     for (int i = 0; i < allJobs.size(); i++) {
@@ -63,15 +65,21 @@ for (Integer id : completedJobs) {
 
         Process process = jobs.get(id);
 
+        if (process == null) {
+            continue;
+        }
+
         String marker = " ";
 
-        if (i == allJobs.size() - 1) {
+        if (allJobs.size() == 1) {
+            marker = "+";
+        } else if (i == allJobs.size() - 1) {
             marker = "+";
         } else if (i == allJobs.size() - 2) {
             marker = "-";
         }
 
-        if (process != null && process.isAlive()) {
+        if (process.isAlive()) {
             System.out.printf(
                 "[%d]%s  Running                 %s &%n",
                 id,
