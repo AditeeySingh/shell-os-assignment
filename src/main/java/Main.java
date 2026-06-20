@@ -9,8 +9,8 @@ public class Main {
 
             String input = scanner.nextLine();
 
-            if (input.equals("exit 0")) {
-                break;
+            if (input.equals("exit") || input.equals("exit 0")) {
+                System.exit(0);
             }
 
             System.out.println(input + ": command not found");
