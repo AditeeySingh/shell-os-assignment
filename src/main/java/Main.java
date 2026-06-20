@@ -15,34 +15,13 @@ public class Main {
     private static Path currentDirectory = Paths.get(System.getProperty("user.dir"));
     private static final Map<Integer, Process> jobs = new LinkedHashMap<>();
     private static final Map<Integer, String> jobCommands = new LinkedHashMap<>();
-    private static int nextJobId = 1;
 
     public static void main(String[] args) throws Exception {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
-            List<Integer> completedJobs = new ArrayList<>();
-
-List<Integer> currentJobs = new ArrayList<>(jobs.keySet());
-
-for (Integer id : currentJobs) {
-    Process process = jobs.get(id);
-
-    if (process != null && !process.isAlive()) {
-        System.out.printf(
-            "[%d]+  Done                 %s%n",
-            id,
-            jobCommands.get(id)
-        );
-
-        completedJobs.add(id);
-    }
-}
-
-for (Integer id : completedJobs) {
-    jobs.remove(id);
-    jobCommands.remove(id);
-}
+            reapJobs();
+            
          System.out.print("$ ");
 
             String input = scanner.nextLine();
@@ -203,8 +182,11 @@ for (int i = 0; i < parts.length; i++) {
 );
     }
 
-    System.out.println(output);
+System.out.println(output);
+
+reapJobs();
 }
+
 
                 continue;
             }
@@ -323,6 +305,7 @@ if (redirectIndex != -1) {
                         });
 
                         System.out.println("[" + jobId + "] " + process.pid());
+                        reapJobs();
                         continue;
                     }
 
@@ -366,6 +349,28 @@ if (redirectIndex != -1) {
             System.out.println(input + ": command not found");
         }
     }
+    private static void reapJobs() {
+    List<Integer> completedJobs = new ArrayList<>();
+
+    for (Integer id : new ArrayList<>(jobs.keySet())) {
+        Process process = jobs.get(id);
+
+        if (process != null && !process.isAlive()) {
+            System.out.printf(
+                "[%d]+  Done                 %s%n",
+                id,
+                jobCommands.get(id)
+            );
+
+            completedJobs.add(id);
+        }
+    }
+
+    for (Integer id : completedJobs) {
+        jobs.remove(id);
+        jobCommands.remove(id);
+    }
+}
 private static int getNextJobId() {
     int id = 1;
 
@@ -461,3 +466,4 @@ private static int getNextJobId() {
         return null;
     }
 }
+
