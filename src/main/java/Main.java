@@ -131,7 +131,28 @@ public class Main {
     for (int i = 0; i < input.length(); i++) {
         char ch = input.charAt(i);
 
-        if (ch == '\\' && !inSingleQuote && !inDoubleQuote) {
+        if (ch == '\\') {
+            if (inSingleQuote) {
+                current.append(ch);
+                continue;
+            }
+
+            if (inDoubleQuote) {
+                if (i + 1 < input.length()) {
+                    char next = input.charAt(i + 1);
+
+                    if (next == '\\' || next == '"' || next == '$' || next == '\n') {
+                        current.append(next);
+                        i++;
+                    } else {
+                        current.append('\\');
+                    }
+                } else {
+                    current.append('\\');
+                }
+                continue;
+            }
+
             if (i + 1 < input.length()) {
                 current.append(input.charAt(i + 1));
                 i++;
@@ -165,7 +186,6 @@ public class Main {
 
     return tokens.toArray(new String[0]);
 }
-
 
     private static String findExecutable(String command) {
         String pathEnv = System.getenv("PATH");
