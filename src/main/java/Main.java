@@ -25,55 +25,12 @@ public class Main {
          System.out.print("$ ");
 
             String input = scanner.nextLine();
-           if (input.contains("|")) {
+          if (input.contains("|")) {
 
-    String[] commands = input.split("\\|");
-
-    String inputData = null;
-
-    for (String command : commands) {
-
-        String[] parts =
-            parseCommand(command.trim());
-
-        if (isBuiltin(parts[0])) {
-
-            inputData =
-                executeBuiltin(parts);
-
-        } else {
-
-            ProcessBuilder pb =
-                new ProcessBuilder(parts);
-
-            pb.directory(
-                currentDirectory.toFile()
-            );
-
-            Process process =
-                pb.start();
-
-            if (inputData != null) {
-
-                process.getOutputStream()
-                    .write(inputData.getBytes());
-
-                process.getOutputStream()
-                    .close();
-            }
-
-            inputData =
-                new String(
-                    process.getInputStream()
-                        .readAllBytes()
-                );
-
-            process.waitFor();
-        }
-    }
-
-    if (inputData != null) {
-        System.out.print(inputData);
+    if (pipelineContainsBuiltin(input)) {
+        runBuiltinPipeline(input);
+    } else {
+        runExternalPipeline(input);
     }
 
     continue;
@@ -500,6 +457,111 @@ private static int getNextJobId() {
                 return "";
             }
 
+            private static boolean pipelineContainsBuiltin(String input) {
+
+    String[] commands = input.split("\\|");
+
+    for (String command : commands) {
+
+        String[] parts =
+            parseCommand(command.trim());
+
+        if (parts.length > 0 &&
+            isBuiltin(parts[0])) {
+
+            return true;
+        }
+    }
+
+    return false;
+}
+private static void runExternalPipeline(String input)
+    throws Exception {
+
+    String[] commands = input.split("\\|");
+
+    List<ProcessBuilder> builders =
+        new ArrayList<>();
+
+    for (String command : commands) {
+
+        ProcessBuilder pb =
+            new ProcessBuilder(
+                parseCommand(command.trim())
+            );
+
+        pb.directory(
+            currentDirectory.toFile()
+        );
+
+        builders.add(pb);
+    }
+
+    List<Process> processes =
+        ProcessBuilder.startPipeline(builders);
+
+    Process last =
+        processes.get(processes.size() - 1);
+
+    last.getInputStream()
+        .transferTo(System.out);
+
+    for (Process process : processes) {
+        process.waitFor();
+    }
+}
+private static void runBuiltinPipeline(String input)
+    throws Exception {
+
+    String[] commands = input.split("\\|");
+
+    String inputData = null;
+
+    for (String command : commands) {
+
+        String[] parts =
+            parseCommand(command.trim());
+
+        if (isBuiltin(parts[0])) {
+
+            inputData =
+                executeBuiltin(parts);
+
+        } else {
+
+            ProcessBuilder pb =
+                new ProcessBuilder(parts);
+
+            pb.directory(
+                currentDirectory.toFile()
+            );
+
+            Process process =
+                pb.start();
+
+            if (inputData != null) {
+
+                process.getOutputStream()
+                    .write(inputData.getBytes());
+
+                process.getOutputStream()
+                    .close();
+            }
+
+            inputData =
+                new String(
+                    process.getInputStream()
+                        .readAllBytes()
+                );
+
+            process.waitFor();
+        }
+    }
+
+    if (inputData != null) {
+        System.out.print(inputData);
+    }
+}
     private static String[] parseCommand(String input) {
         List<String> tokens = new ArrayList<>();
         StringBuilder current = new StringBuilder();
