@@ -25,24 +25,13 @@ public class Main {
 
 List<Integer> allJobs = new ArrayList<>(jobs.keySet());
 
-for (int i = 0; i < allJobs.size(); i++) {
-    int id = allJobs.get(i);
-
+for (Integer id : allJobs) {
     Process process = jobs.get(id);
 
-if (process != null && !process.isAlive()) {
-        String marker = " ";
-
-        if (i == allJobs.size() - 1) {
-            marker = "+";
-        } else if (i == allJobs.size() - 2) {
-            marker = "-";
-        }
-
+    if (process != null && !process.isAlive()) {
         System.out.printf(
-            "[%d]%s  Done                 %s%n",
+            "[%d]+  Done                 %s%n",
             id,
-            marker,
             jobCommands.get(id)
         );
 
@@ -67,6 +56,7 @@ for (Integer id : completedJobs) {
                 continue;
             }
          if (input.equals("jobs")) {
+    List<Integer> allJobs = new ArrayList<>(jobs.keySet());
     List<Integer> toRemove = new ArrayList<>();
 
     for (int i = 0; i < allJobs.size(); i++) {
@@ -74,13 +64,6 @@ for (Integer id : completedJobs) {
 
         Process process = jobs.get(id);
 
-        String marker = " ";
-
-        if (i == allJobs.size() - 1) {
-            marker = "+";
-        } else if (i == allJobs.size() - 2) {
-            marker = "-";
-        }
 
         if (process != null && process.isAlive()) {
             System.out.printf(
