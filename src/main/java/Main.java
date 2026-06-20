@@ -96,22 +96,22 @@ for (int i = 0; i < parts.length; i++) {
                 if (redirectFile != null) {
     Files.writeString(
             currentDirectory.resolve(redirectFile),
-            "",
+            output + System.lineSeparator(),
             StandardOpenOption.CREATE,
             StandardOpenOption.TRUNCATE_EXISTING
     );
-}
+} else {
+    if (stderrRedirectFile != null) {
+        Files.writeString(
+                currentDirectory.resolve(stderrRedirectFile),
+                "",
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
+    }
 
-if (stderrRedirectFile != null) {
-    Files.writeString(
-            currentDirectory.resolve(stderrRedirectFile),
-            "",
-            StandardOpenOption.CREATE,
-            StandardOpenOption.TRUNCATE_EXISTING
-    );
+    System.out.println(output);
 }
-
-System.out.println(output);
 
                 continue;
             }
