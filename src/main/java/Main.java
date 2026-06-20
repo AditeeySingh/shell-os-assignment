@@ -172,6 +172,8 @@ for (int i = 0; i < parts.length; i++) {
                     System.out.println("pwd is a shell builtin");
                 } else if (command.equals("cd")) {
                     System.out.println("cd is a shell builtin");
+                } else if (command.equals("jobs")) {
+                    System.out.println("jobs is a shell builtin");
                 } else {
                     String path = findExecutable(command);
 
