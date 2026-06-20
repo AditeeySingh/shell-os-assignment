@@ -26,43 +26,36 @@ public class Main {
 
             String input = scanner.nextLine();
            if (input.contains("|")) {
-                        String[] commands = input.split("\\|", 2);
 
-                        String[] left = parseCommand(commands[0].trim());
-                        String[] right = parseCommand(commands[1].trim());
+    String[] commandStrings = input.split("\\|");
 
-                        ProcessBuilder pb1 = new ProcessBuilder(left);
-                        pb1.directory(currentDirectory.toFile());
+    List<ProcessBuilder> builders = new ArrayList<>();
 
-                        ProcessBuilder pb2 = new ProcessBuilder(right);
-                        pb2.directory(currentDirectory.toFile());
+    for (String command : commandStrings) {
+        ProcessBuilder pb =
+            new ProcessBuilder(parseCommand(command.trim()));
 
-                        pb1.redirectError(ProcessBuilder.Redirect.INHERIT);
-                        pb2.redirectError(ProcessBuilder.Redirect.INHERIT);
+        pb.directory(currentDirectory.toFile());
 
-                        Process p1 = pb1.start();
-                        Process p2 = pb2.start();
+        builders.add(pb);
+    }
 
-                        Thread.ofVirtual().start(() -> {
-                            try (
-                                var in = p1.getInputStream();
-                                var out = p2.getOutputStream()
-                            ) {
-                                in.transferTo(out);
-                            } catch (IOException ignored) {
-                            }
-                        });
+    List<Process> processes =
+        ProcessBuilder.startPipeline(builders);
 
-                        try (var in = p2.getInputStream()) {
-                            in.transferTo(System.out);
-                        }
+    Process lastProcess =
+        processes.get(processes.size() - 1);
 
-                        p2.waitFor();
+    lastProcess.getInputStream().transferTo(System.out);
 
-                        continue;
-                    }
+    for (Process process : processes) {
+        process.waitFor();
+    }
 
-            if (input.equals("exit") || input.equals("exit 0")) {
+    reapJobs();
+
+    continue;
+}          if (input.equals("exit") || input.equals("exit 0")) {
                 System.exit(0);
             }
 
