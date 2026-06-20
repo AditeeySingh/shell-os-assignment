@@ -5,12 +5,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
 
     private static Path currentDirectory = Paths.get(System.getProperty("user.dir"));
+    private static final Map<Integer, Process> jobs = new LinkedHashMap<>();
+    private static final Map<Integer, String> jobCommands = new LinkedHashMap<>();
+    private static int nextJobId = 1;
 
     public static void main(String[] args) throws Exception {
         Scanner scanner = new Scanner(System.in);
@@ -28,6 +33,27 @@ public class Main {
                 System.out.println(currentDirectory);
                 continue;
             }
+            if (input.equals("jobs")) {
+    List<Integer> finished = new ArrayList<>();
+
+    for (Map.Entry<Integer, Process> entry : jobs.entrySet()) {
+        int id = entry.getKey();
+        Process process = entry.getValue();
+
+        if (process.isAlive()) {
+            System.out.println("[" + id + "] Running " + jobCommands.get(id));
+        } else {
+            finished.add(id);
+        }
+    }
+
+    for (Integer id : finished) {
+        jobs.remove(id);
+        jobCommands.remove(id);
+    }
+
+    continue;
+}
 
             if (input.startsWith("cd ")) {
                 String directory = input.substring(3);
@@ -159,7 +185,15 @@ for (int i = 0; i < parts.length; i++) {
                 continue;
             }
 
-            String[] parts = parseCommand(input);
+            boolean background = false;
+
+if (input.trim().endsWith("&")) {
+    background = true;
+    input = input.trim();
+    input = input.substring(0, input.length() - 1).trim();
+}
+
+String[] parts = parseCommand(input);
 
             if (parts.length == 0) {
                 continue;
@@ -215,7 +249,17 @@ if (redirectIndex != -1) {
                     String stdout = new String(process.getInputStream().readAllBytes());
                     String stderr = new String(process.getErrorStream().readAllBytes());
 
-                        process.waitFor();
+                        if (background) {
+    int jobId = nextJobId++;
+
+    jobs.put(jobId, process);
+    jobCommands.put(jobId, input);
+
+    System.out.println("[" + jobId + "] " + process.pid());
+    continue;
+}
+
+process.waitFor();
 
                         if (stdoutFile != null) {
     Files.writeString(
