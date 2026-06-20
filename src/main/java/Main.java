@@ -28,9 +28,15 @@ public class Main {
             if (input.startsWith("cd ")) {
                 String directory = input.substring(3);
 
-                Path newPath = Paths.get(directory);
+                Path newPath;
 
-                if (newPath.isAbsolute() && newPath.toFile().isDirectory()) {
+                if (Paths.get(directory).isAbsolute()) {
+                    newPath = Paths.get(directory);
+                } else {
+                    newPath = currentDirectory.resolve(directory);
+                }
+
+                if (newPath.toFile().isDirectory()) {
                     currentDirectory = newPath.normalize();
                 } else {
                     System.out.println("cd: " + directory + ": No such file or directory");
