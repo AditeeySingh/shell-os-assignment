@@ -2,6 +2,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -51,32 +53,33 @@ public class Main {
             }
 
             if (input.startsWith("echo ")) {
-    String text = input.substring(5);
+                String text = input.substring(5);
 
-    StringBuilder result = new StringBuilder();
-    boolean inSingleQuote = false;
+                StringBuilder result = new StringBuilder();
+                boolean inSingleQuote = false;
 
-    for (int i = 0; i < text.length(); i++) {
-        char ch = text.charAt(i);
+                for (int i = 0; i < text.length(); i++) {
+                    char ch = text.charAt(i);
 
-        if (ch == '\'') {
-            inSingleQuote = !inSingleQuote;
-            continue;
-        }
+                    if (ch == '\'') {
+                        inSingleQuote = !inSingleQuote;
+                        continue;
+                    }
 
-        if (!inSingleQuote && Character.isWhitespace(ch)) {
-            while (i + 1 < text.length() && Character.isWhitespace(text.charAt(i + 1))) {
-                i++;
+                    if (!inSingleQuote && Character.isWhitespace(ch)) {
+                        while (i + 1 < text.length() &&
+                               Character.isWhitespace(text.charAt(i + 1))) {
+                            i++;
+                        }
+                        result.append(' ');
+                    } else {
+                        result.append(ch);
+                    }
+                }
+
+                System.out.println(result.toString().trim());
+                continue;
             }
-            result.append(' ');
-        } else {
-            result.append(ch);
-        }
-    }
-
-    System.out.println(result.toString().trim());
-    continue;
-}
 
             if (input.startsWith("type ")) {
                 String command = input.substring(5);
@@ -104,7 +107,12 @@ public class Main {
                 continue;
             }
 
-            String[] parts = input.split(" ");
+            String[] parts = parseCommand(input);
+
+            if (parts.length == 0) {
+                continue;
+            }
+
             String executable = findExecutable(parts[0]);
 
             if (executable != null) {
@@ -124,6 +132,36 @@ public class Main {
 
             System.out.println(input + ": command not found");
         }
+    }
+
+    private static String[] parseCommand(String input) {
+        List<String> tokens = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inSingleQuote = false;
+
+        for (int i = 0; i < input.length(); i++) {
+            char ch = input.charAt(i);
+
+            if (ch == '\'') {
+                inSingleQuote = !inSingleQuote;
+                continue;
+            }
+
+            if (Character.isWhitespace(ch) && !inSingleQuote) {
+                if (current.length() > 0) {
+                    tokens.add(current.toString());
+                    current.setLength(0);
+                }
+            } else {
+                current.append(ch);
+            }
+        }
+
+        if (current.length() > 0) {
+            tokens.add(current.toString());
+        }
+
+        return tokens.toArray(new String[0]);
     }
 
     private static String findExecutable(String command) {
