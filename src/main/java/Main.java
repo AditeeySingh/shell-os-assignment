@@ -57,11 +57,12 @@ public class Main {
             if (input.startsWith("echo ")) {
                 String[] parts = parseCommand(input);
 
-                String redirectFile = null;
+                String stdoutFile = null;
+                String stderrFile = null;
 
                 for (int i = 0; i < parts.length; i++) {
                     if (parts[i].equals(">") || parts[i].equals("1>")) {
-                        redirectFile = parts[i + 1];
+                        stdoutFile = parts[i + 1];
                         break;
                     }
                 }
@@ -130,18 +131,30 @@ public class Main {
                 continue;
             }
 
-            String redirectFile = null;
+            String stdoutFile = null;
+String stderrFile = null;
 
-            for (int i = 0; i < parts.length; i++) {
-                if (parts[i].equals(">") || parts[i].equals("1>")) {
-                    redirectFile = parts[i + 1];
+            int redirectIndex = -1;
 
-                    String[] temp = new String[i];
-                    System.arraycopy(parts, 0, temp, 0, i);
-                    parts = temp;
-                    break;
-                }
-            }
+for (int i = 0; i < parts.length; i++) {
+    if (parts[i].equals(">") || parts[i].equals("1>")) {
+        stdoutFile = parts[i + 1];
+        redirectIndex = i;
+        break;
+    }
+
+    if (parts[i].equals("2>")) {
+        stderrFile = parts[i + 1];
+        redirectIndex = i;
+        break;
+    }
+}
+
+if (redirectIndex != -1) {
+    String[] temp = new String[redirectIndex];
+    System.arraycopy(parts, 0, temp, 0, redirectIndex);
+    parts = temp;
+}
 
             String executable = findExecutable(parts[0]);
 
@@ -157,20 +170,27 @@ public class Main {
 
                         process.waitFor();
 
-                        if (redirectFile != null) {
-                            Files.writeString(
-                                    currentDirectory.resolve(redirectFile),
-                                    stdout,
-                                    StandardOpenOption.CREATE,
-                                    StandardOpenOption.TRUNCATE_EXISTING
-                            );
-                        } else {
-                            System.out.print(stdout);
-                        }
+                        if (stdoutFile != null) {
+    Files.writeString(
+            currentDirectory.resolve(stdoutFile),
+            stdout,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING
+    );
+} else {
+    System.out.print(stdout);
+}
 
-                        if (!stderr.isEmpty()) {
-                            System.err.print(stderr);
-                        }
+if (stderrFile != null) {
+    Files.writeString(
+            currentDirectory.resolve(stderrFile),
+            stderr,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING
+    );
+} else if (!stderr.isEmpty()) {
+    System.err.print(stderr);
+}
                 } catch (IOException e) {
                     System.out.println(input + ": command not found");
                 }
