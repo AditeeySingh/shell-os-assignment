@@ -32,7 +32,7 @@ public class Main {
     } else {
         runExternalPipeline(input);
     }
-
+reapJobs();
     continue;
 }
  if (input.equals("exit") || input.equals("exit 0")) {
@@ -99,6 +99,7 @@ public class Main {
 
                 if (directory.equals("~")) {
                     currentDirectory = Paths.get(System.getenv("HOME"));
+                    reapJobs();
                     continue;
                 }
 
@@ -116,6 +117,7 @@ public class Main {
                     System.out.println("cd: " + directory + ": No such file or directory");
                 }
 
+                reapJobs();
                 continue;
             }
 
