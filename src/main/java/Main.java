@@ -1,307 +1,174 @@
-import java.io.File;
-import java.io.IOException;
+import command.Command;
+import command.CommandFactory;
+import command.CommandOutput;
+import command.functions.Exit;
+
+import state.CurrentPath;
+
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
-
-    private static Path currentDirectory = Paths.get(System.getProperty("user.dir"));
-
-    public static void main(String[] args) throws Exception {
-        Scanner scanner = new Scanner(System.in);
-
-        while (true) {
+    static void main(String[] args) throws Exception {
+        CommandFactory commandFactory = new CommandFactory();
+        boolean run = true;
+        while (run) {
             System.out.print("$ ");
+            Scanner scanner = new Scanner(System.in);
+            String commandLine = scanner.nextLine();
 
-            String input = scanner.nextLine();
+            String[] arguments;
 
-            if (input.equals("exit") || input.equals("exit 0")) {
-                System.exit(0);
-            }
+            boolean inSingleQuotes = false;
+            boolean inDoubleQuotes = false;
 
-            if (input.equals("pwd")) {
-                System.out.println(currentDirectory);
-                continue;
-            }
+            boolean isEscaped = false;
+            boolean isEscapedConditionally = false;
+            List<String> argsList = new ArrayList<>();
 
-            if (input.startsWith("cd ")) {
-                String directory = input.substring(3);
+            StringBuilder currentArg = new StringBuilder();
 
-                if (directory.equals("~")) {
-                    currentDirectory = Paths.get(System.getenv("HOME"));
+            for (char current : commandLine.toCharArray()) {
+                if (isEscaped) {
+                    currentArg.append(current);
+                    isEscaped = false;
                     continue;
                 }
 
-                Path newPath;
-
-                if (Paths.get(directory).isAbsolute()) {
-                    newPath = Paths.get(directory);
-                } else {
-                    newPath = currentDirectory.resolve(directory);
-                }
-
-                if (newPath.toFile().isDirectory()) {
-                    currentDirectory = newPath.normalize();
-                } else {
-                    System.out.println("cd: " + directory + ": No such file or directory");
-                }
-
-                continue;
-            }
-
-            if (input.startsWith("echo ")) {
-                String[] parts = parseCommand(input);
-
-                String redirectFile = null;
-String stderrRedirectFile = null;
-
-for (int i = 0; i < parts.length; i++) {
-    if (parts[i].equals(">") ||
-        parts[i].equals("1>")) {
-        redirectFile = parts[i + 1];
-        break;
-    }
-
-    if (parts[i].equals("2>")) {
-        stderrRedirectFile = parts[i + 1];
-        break;
-    }
-}
-
-                StringBuilder output = new StringBuilder();
-
-                int limit = parts.length;
-
-                for (int i = 0; i < parts.length; i++) {
-    if (parts[i].equals(">") ||
-        parts[i].equals("1>") ||
-        parts[i].equals("2>")) {
-        limit = i;
-        break;
-    }
-}
-
-                for (int i = 1; i < limit; i++) {
-                    if (i > 1) {
-                        output.append(" ");
+                if (isEscapedConditionally) {
+                    switch (current) {
+                        case '"', '\\':
+                            currentArg.append(current);
+                            break;
+                        default:
+                            currentArg.append('\\').append(current);
                     }
-                    output.append(parts[i]);
-                }
-
-                if (redirectFile != null) {
-    Files.writeString(
-            currentDirectory.resolve(redirectFile),
-            output + System.lineSeparator(),
-            StandardOpenOption.CREATE,
-            StandardOpenOption.TRUNCATE_EXISTING
-    );
-} else {
-    if (stderrRedirectFile != null) {
-        Files.writeString(
-                currentDirectory.resolve(stderrRedirectFile),
-                "",
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING
-        );
-    }
-
-    System.out.println(output);
-}
-
-                continue;
-            }
-
-            if (input.startsWith("type ")) {
-                String command = input.substring(5);
-
-                if (command.equals("echo")) {
-                    System.out.println("echo is a shell builtin");
-                } else if (command.equals("exit")) {
-                    System.out.println("exit is a shell builtin");
-                } else if (command.equals("type")) {
-                    System.out.println("type is a shell builtin");
-                } else if (command.equals("pwd")) {
-                    System.out.println("pwd is a shell builtin");
-                } else if (command.equals("cd")) {
-                    System.out.println("cd is a shell builtin");
-                } else {
-                    String path = findExecutable(command);
-
-                    if (path != null) {
-                        System.out.println(command + " is " + path);
-                    } else {
-                        System.out.println(command + ": not found");
-                    }
-                }
-
-                continue;
-            }
-
-            String[] parts = parseCommand(input);
-
-            if (parts.length == 0) {
-                continue;
-            }
-
-            String stdoutFile = null;
-String stderrFile = null;
-
-int redirectIndex = -1;
-
-for (int i = 0; i < parts.length; i++) {
-    if (parts[i].equals(">") || parts[i].equals("1>")) {
-        stdoutFile = parts[i + 1];
-        redirectIndex = i;
-        break;
-    }
-
-    if (parts[i].equals("2>")) {
-        stderrFile = parts[i + 1];
-        redirectIndex = i;
-        break;
-    }
-}
-
-if (redirectIndex != -1) {
-    String[] temp = new String[redirectIndex];
-    System.arraycopy(parts, 0, temp, 0, redirectIndex);
-    parts = temp;
-}
-
-            String executable = findExecutable(parts[0]);
-
-            if (executable != null) {
-                try {
-                    ProcessBuilder processBuilder = new ProcessBuilder(parts);
-                    processBuilder.directory(currentDirectory.toFile());
-
-                    Process process = processBuilder.start();
-
-                    String stdout = new String(process.getInputStream().readAllBytes());
-                    String stderr = new String(process.getErrorStream().readAllBytes());
-
-                        process.waitFor();
-
-                        if (stdoutFile != null) {
-    Files.writeString(
-            currentDirectory.resolve(stdoutFile),
-            stdout,
-            StandardOpenOption.CREATE,
-            StandardOpenOption.TRUNCATE_EXISTING
-    );
-} else {
-    System.out.print(stdout);
-}
-
-if (stderrFile != null) {
-    Files.writeString(
-            currentDirectory.resolve(stderrFile),
-            stderr,
-            StandardOpenOption.CREATE,
-            StandardOpenOption.TRUNCATE_EXISTING
-    );
-} else if (!stderr.isEmpty()) {
-    System.err.print(stderr);
-}
-                } catch (IOException e) {
-                    System.out.println(input + ": command not found");
-                }
-
-                continue;
-            }
-
-            System.out.println(input + ": command not found");
-        }
-    }
-
-    private static String[] parseCommand(String input) {
-        List<String> tokens = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-
-        boolean inSingleQuote = false;
-        boolean inDoubleQuote = false;
-
-        for (int i = 0; i < input.length(); i++) {
-            char ch = input.charAt(i);
-
-            if (ch == '\\') {
-                if (inSingleQuote) {
-                    current.append(ch);
+                    isEscapedConditionally = false;
                     continue;
                 }
 
-                if (inDoubleQuote) {
-                    if (i + 1 < input.length()) {
-                        char next = input.charAt(i + 1);
-
-                        if (next == '\\' || next == '"' || next == '$' || next == '\n') {
-                            current.append(next);
-                            i++;
+                switch (current) {
+                    case '\'':
+                        if (inDoubleQuotes) {
+                            currentArg.append(current);
                         } else {
-                            current.append('\\');
+                            inSingleQuotes = !inSingleQuotes;
                         }
-                    } else {
-                        current.append('\\');
+                        break;
+                    case ' ':
+                        if (inSingleQuotes || inDoubleQuotes) {
+                            currentArg.append(current);
+                        } else if (!currentArg.isEmpty()) {
+                            argsList.add(currentArg.toString());
+                            currentArg = new StringBuilder();
+                        }
+                        break;
+                    case '"':
+                        if (inSingleQuotes) {
+                            currentArg.append(current);
+                        } else {
+                            inDoubleQuotes = !inDoubleQuotes;
+                        }
+                        break;
+                    case '\\':
+                        if (inSingleQuotes) {
+                            currentArg.append(current);
+                        } else if (inDoubleQuotes) {
+                            isEscapedConditionally = true;
+                        } else {
+                            isEscaped = true;
+                        }
+                        break;
+                    default:
+                        currentArg.append(current);
+                }
+            }
+
+            argsList.add(currentArg.toString());
+
+            arguments = argsList.toArray(new String[0]);
+
+            String[] execArgs = Arrays.copyOfRange(arguments, 1, arguments.length);
+
+            Optional<Command> command = commandFactory.getCommandByName(arguments[0]);
+
+            OutputStream outStd = System.out;
+            OutputStream outErr = System.err;
+
+            if (argsList.size() > 1) {
+                String secondToLastArg = argsList.get(argsList.size() - 2);
+
+                if (">".equals(secondToLastArg)
+                        || "1>".equals(secondToLastArg)
+                        || ">>".equals(secondToLastArg)
+                        || "1>>".equals(secondToLastArg)) {
+                    Path outputFilePath = Path.of(argsList.getLast());
+
+                    boolean append = ">>".equals(secondToLastArg) || "1>>".equals(secondToLastArg);
+
+                    if (!outputFilePath.isAbsolute()) {
+                        outputFilePath =
+                                Path.of(
+                                        CurrentPath.INSTANCE.getPath().toString(),
+                                        argsList.getLast());
                     }
-                    continue;
+
+                    if (!Files.exists(outputFilePath)) {
+                        Files.createFile(outputFilePath);
+                    }
+
+                    outStd = new FileOutputStream(outputFilePath.toFile(), append);
+
+                    execArgs = Arrays.copyOfRange(arguments, 1, arguments.length - 2);
                 }
 
-                if (i + 1 < input.length()) {
-                    current.append(input.charAt(i + 1));
-                    i++;
+                if ("2>".equals(secondToLastArg)) {
+                    Path outputFilePath = Path.of(argsList.getLast());
+
+                    if (!outputFilePath.isAbsolute()) {
+                        outputFilePath =
+                                Path.of(
+                                        CurrentPath.INSTANCE.getPath().toString(),
+                                        argsList.getLast());
+                    }
+
+                    if (!Files.exists(outputFilePath)) {
+                        Files.createFile(outputFilePath);
+                    }
+
+                    outErr = new FileOutputStream(outputFilePath.toFile());
+
+                    execArgs = Arrays.copyOfRange(arguments, 1, arguments.length - 2);
                 }
-                continue;
             }
 
-            if (ch == '\'' && !inDoubleQuote) {
-                inSingleQuote = !inSingleQuote;
-                continue;
-            }
-
-            if (ch == '"' && !inSingleQuote) {
-                inDoubleQuote = !inDoubleQuote;
-                continue;
-            }
-
-            if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
-                if (current.length() > 0) {
-                    tokens.add(current.toString());
-                    current.setLength(0);
-                }
+            if (command.isEmpty()) {
+                System.err.printf("%s: command not found%n", arguments[0]);
+            } else if (command.get() instanceof Exit) {
+                run = false;
             } else {
-                current.append(ch);
+                CommandOutput output = command.get().execute(execArgs);
+
+                try (InputStream std = output.standard()) {
+                    std.transferTo(outStd);
+                } finally {
+                    if (!outStd.equals(System.out)) {
+                        outStd.close();
+                    }
+                }
+
+                try (InputStream err = output.error()) {
+                    err.transferTo(outErr);
+                } finally {
+                    if (!outErr.equals(System.err)) {
+                        outErr.close();
+                    }
+                }
             }
         }
-
-        if (current.length() > 0) {
-            tokens.add(current.toString());
-        }
-
-        return tokens.toArray(new String[0]);
-    }
-
-    private static String findExecutable(String command) {
-        String pathEnv = System.getenv("PATH");
-
-        if (pathEnv == null) {
-            return null;
-        }
-
-        String[] paths = pathEnv.split(File.pathSeparator);
-
-        for (String path : paths) {
-            File file = new File(path, command);
-
-            if (file.isFile() && file.canExecute()) {
-                return file.getAbsolutePath();
-            }
-        }
-
-        return null;
     }
 }
