@@ -57,12 +57,11 @@ public class Main {
             if (input.startsWith("echo ")) {
                 String[] parts = parseCommand(input);
 
-                String stdoutFile = null;
-                String stderrFile = null;
+                String redirectFile = null;
 
                 for (int i = 0; i < parts.length; i++) {
                     if (parts[i].equals(">") || parts[i].equals("1>")) {
-                        stdoutFile = parts[i + 1];
+                        redirectFile = parts[i + 1];
                         break;
                     }
                 }
@@ -134,7 +133,7 @@ public class Main {
             String stdoutFile = null;
 String stderrFile = null;
 
-            int redirectIndex = -1;
+int redirectIndex = -1;
 
 for (int i = 0; i < parts.length; i++) {
     if (parts[i].equals(">") || parts[i].equals("1>")) {
