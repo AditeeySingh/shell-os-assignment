@@ -61,8 +61,7 @@ public class Main {
 
 for (int i = 0; i < parts.length; i++) {
     if (parts[i].equals(">") ||
-        parts[i].equals("1>") ||
-        parts[i].equals("2>")) {
+    parts[i].equals("1>")) {
         redirectFile = parts[i + 1];
         break;
     }
@@ -74,8 +73,7 @@ for (int i = 0; i < parts.length; i++) {
 
                 for (int i = 0; i < parts.length; i++) {
     if (parts[i].equals(">") ||
-        parts[i].equals("1>") ||
-        parts[i].equals("2>")) {
+    parts[i].equals("1>")) {
         limit = i;
         break;
     }
@@ -89,15 +87,15 @@ for (int i = 0; i < parts.length; i++) {
                 }
 
                 if (redirectFile != null) {
-                    Files.writeString(
-                            currentDirectory.resolve(redirectFile),
-                            output + System.lineSeparator(),
-                            StandardOpenOption.CREATE,
-                            StandardOpenOption.TRUNCATE_EXISTING
-                    );
-                } else {
-                    System.out.println(output);
-                }
+    Files.writeString(
+            currentDirectory.resolve(redirectFile),
+            "",
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING
+    );
+}
+
+System.out.println(output);
 
                 continue;
             }
