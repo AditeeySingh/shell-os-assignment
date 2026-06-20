@@ -78,10 +78,6 @@ public class Main {
     continue;
 }
 
-    System.out.println(text);
-    continue;
-}
-
             if (input.startsWith("type ")) {
                 String command = input.substring(5);
 
