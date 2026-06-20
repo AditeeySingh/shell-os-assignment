@@ -341,7 +341,7 @@ if (redirectIndex != -1) {
                 } catch (IOException e) {
                     System.out.println(input + ": command not found");
                 }
-                
+                reapJobs();
                 continue;
             }
 
