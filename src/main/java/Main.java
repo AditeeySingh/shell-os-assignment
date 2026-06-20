@@ -26,38 +26,41 @@ public class Main {
 
             String input = scanner.nextLine();
            if (input.contains("|")) {
-                String[] commands = input.split("\\|", 2);
+                        String[] commands = input.split("\\|", 2);
 
-                String[] left = parseCommand(commands[0].trim());
-                String[] right = parseCommand(commands[1].trim());
+                        String[] left = parseCommand(commands[0].trim());
+                        String[] right = parseCommand(commands[1].trim());
 
-                ProcessBuilder pb1 = new ProcessBuilder(left);
-                pb1.directory(currentDirectory.toFile());
+                        ProcessBuilder pb1 = new ProcessBuilder(left);
+                        pb1.directory(currentDirectory.toFile());
 
-                ProcessBuilder pb2 = new ProcessBuilder(right);
-                pb2.directory(currentDirectory.toFile());
+                        ProcessBuilder pb2 = new ProcessBuilder(right);
+                        pb2.directory(currentDirectory.toFile());
 
-                Process p1 = pb1.start();
-                Process p2 = pb2.start();
+                        pb1.redirectError(ProcessBuilder.Redirect.INHERIT);
+                        pb2.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-                Thread.ofVirtual().start(() -> {
-                    try (
-                        var in = p1.getInputStream();
-                        var out = p2.getOutputStream()
-                    ) {
-                        in.transferTo(out);
-                    } catch (Exception ignored) {
+                        Process p1 = pb1.start();
+                        Process p2 = pb2.start();
+
+                        Thread.ofVirtual().start(() -> {
+                            try (
+                                var in = p1.getInputStream();
+                                var out = p2.getOutputStream()
+                            ) {
+                                in.transferTo(out);
+                            } catch (IOException ignored) {
+                            }
+                        });
+
+                        try (var in = p2.getInputStream()) {
+                            in.transferTo(System.out);
+                        }
+
+                        p2.waitFor();
+
+                        continue;
                     }
-                });
-
-                String result = new String(p2.getInputStream().readAllBytes());
-
-                System.out.print(result);
-
-                p2.waitFor();
-
-                continue;
-            }
 
             if (input.equals("exit") || input.equals("exit 0")) {
                 System.exit(0);
