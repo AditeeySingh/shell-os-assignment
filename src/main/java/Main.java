@@ -73,7 +73,8 @@ for (int i = 0; i < parts.length; i++) {
 
                 for (int i = 0; i < parts.length; i++) {
     if (parts[i].equals(">") ||
-    parts[i].equals("1>")) {
+        parts[i].equals("1>") ||
+        parts[i].equals("2>")) {
         limit = i;
         break;
     }
