@@ -59,6 +59,7 @@ public class Main {
 
                 String redirectFile = null;
 String stderrRedirectFile = null;
+boolean appendStderr = false;
 boolean appendStdout = false;
 
 for (int i = 0; i < parts.length; i++) {
@@ -73,10 +74,15 @@ for (int i = 0; i < parts.length; i++) {
         break;
     }
 
-    if (parts[i].equals("2>")) {
-        stderrRedirectFile = parts[i + 1];
-        break;
+    if (parts[i].equals("2>") || parts[i].equals("2>>")) {
+    stderrRedirectFile = parts[i + 1];
+
+    if (parts[i].equals("2>>")) {
+        appendStderr = true;
     }
+
+    break;
+}
 }
 
                 StringBuilder output = new StringBuilder();
@@ -88,7 +94,8 @@ for (int i = 0; i < parts.length; i++) {
         parts[i].equals("1>") ||
         parts[i].equals(">>") ||
         parts[i].equals("1>>") ||
-        parts[i].equals("2>")) {
+        parts[i].equals("2>") ||
+        parts[i].equals("2>>")) {
         limit = i;
         break;
     }
@@ -111,11 +118,13 @@ for (int i = 0; i < parts.length; i++) {
 } else {
     if (stderrRedirectFile != null) {
         Files.writeString(
-                currentDirectory.resolve(stderrRedirectFile),
-                "",
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING
-        );
+        currentDirectory.resolve(stderrRedirectFile),
+        "",
+        StandardOpenOption.CREATE,
+        appendStderr
+                ? StandardOpenOption.APPEND
+                : StandardOpenOption.TRUNCATE_EXISTING
+);
     }
 
     System.out.println(output);
@@ -159,6 +168,7 @@ for (int i = 0; i < parts.length; i++) {
             String stdoutFile = null;
 String stderrFile = null;
 boolean appendStdout = false;
+boolean appendStderr = false;
 
 int redirectIndex = -1;
 
@@ -175,11 +185,16 @@ for (int i = 0; i < parts.length; i++) {
         break;
     }
 
-    if (parts[i].equals("2>")) {
-        stderrFile = parts[i + 1];
-        redirectIndex = i;
-        break;
+    if (parts[i].equals("2>") || parts[i].equals("2>>")) {
+    stderrFile = parts[i + 1];
+
+    if (parts[i].equals("2>>")) {
+        appendStderr = true;
     }
+
+    redirectIndex = i;
+    break;
+}
 }
 
 if (redirectIndex != -1) {
@@ -215,11 +230,13 @@ if (redirectIndex != -1) {
 
 if (stderrFile != null) {
     Files.writeString(
-            currentDirectory.resolve(stderrFile),
-            stderr,
-            StandardOpenOption.CREATE,
-            StandardOpenOption.TRUNCATE_EXISTING
-    );
+        currentDirectory.resolve(stderrFile),
+        stderr,
+        StandardOpenOption.CREATE,
+        appendStderr
+                ? StandardOpenOption.APPEND
+                : StandardOpenOption.TRUNCATE_EXISTING
+);
 } else if (!stderr.isEmpty()) {
     System.err.print(stderr);
 }
