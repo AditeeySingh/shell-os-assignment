@@ -34,45 +34,60 @@ public class Main {
                 continue;
             }
             if (input.equals("jobs")) {
-                    List<Integer> finished = new ArrayList<>();
-
                     List<Integer> activeJobs = new ArrayList<>();
+                    List<Integer> finishedJobs = new ArrayList<>();
 
                     for (Map.Entry<Integer, Process> entry : jobs.entrySet()) {
                         if (entry.getValue().isAlive()) {
                             activeJobs.add(entry.getKey());
                         } else {
-                            finished.add(entry.getKey());
+                            finishedJobs.add(entry.getKey());
                         }
                     }
 
-                    for (int i = 0; i < activeJobs.size(); i++) {
-                        int id = activeJobs.get(i);
+                    int totalJobs = activeJobs.size() + finishedJobs.size();
+
+                    for (int i = 0; i < totalJobs; i++) {
+                        int id;
+
+                        if (i < activeJobs.size()) {
+                            id = activeJobs.get(i);
+                        } else {
+                            id = finishedJobs.get(i - activeJobs.size());
+                        }
 
                         String marker = " ";
 
-                        if (i == activeJobs.size() - 1) {
+                        if (i == totalJobs - 1) {
                             marker = "+";
-                        } else if (i == activeJobs.size() - 2) {
+                        } else if (i == totalJobs - 2) {
                             marker = "-";
                         }
 
-                        System.out.printf(
-                            "[%d]%s  Running                 %s &%n",
-                            id,
-                            marker,
-                            jobCommands.get(id)
-                        );
+                        if (jobs.get(id).isAlive()) {
+                            System.out.printf(
+                                "[%d]%s  Running                 %s &%n",
+                                id,
+                                marker,
+                                jobCommands.get(id)
+                            );
+                        } else {
+                            System.out.printf(
+                                "[%d]%s  Done                    %s &%n",
+                                id,
+                                marker,
+                                jobCommands.get(id)
+                            );
+                        }
                     }
 
-                    for (Integer id : finished) {
+                    for (Integer id : finishedJobs) {
                         jobs.remove(id);
                         jobCommands.remove(id);
                     }
 
                     continue;
                 }
-
             if (input.startsWith("cd ")) {
                 String directory = input.substring(3);
 
