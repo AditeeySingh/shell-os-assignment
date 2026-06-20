@@ -305,7 +305,6 @@ if (redirectIndex != -1) {
                         });
 
                         System.out.println("[" + jobId + "] " + process.pid());
-                        reapJobs();
                         continue;
                     }
 
@@ -342,7 +341,7 @@ if (redirectIndex != -1) {
                 } catch (IOException e) {
                     System.out.println(input + ": command not found");
                 }
-
+                reapJobs();
                 continue;
             }
 
