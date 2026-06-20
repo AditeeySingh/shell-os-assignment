@@ -299,7 +299,7 @@ if (redirectIndex != -1) {
                     Process process = processBuilder.start();
 
                     if (background) {
-                        int jobId = nextJobId++;
+                        int jobId = getNextJobId();
 
                         jobs.put(jobId, process);
                         jobCommands.put(jobId, input);
@@ -366,7 +366,15 @@ if (redirectIndex != -1) {
             System.out.println(input + ": command not found");
         }
     }
+private static int getNextJobId() {
+    int id = 1;
 
+    while (jobs.containsKey(id)) {
+        id++;
+    }
+
+    return id;
+}
     private static String[] parseCommand(String input) {
         List<String> tokens = new ArrayList<>();
         StringBuilder current = new StringBuilder();
