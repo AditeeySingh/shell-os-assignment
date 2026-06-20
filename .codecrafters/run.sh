@@ -8,4 +8,4 @@
 
 set -e # Exit on failure
 
-exec java --enable-native-access=ALL-UNNAMED --enable-preview -jar /tmp/codecrafters-build-shell-java/codecrafters-shell.jar "$@"
+exec java -jar /tmp/codecrafters-build-shell-java/codecrafters-shell.jar "$@"
