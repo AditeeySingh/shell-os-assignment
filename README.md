@@ -1,34 +1,149 @@
-[![progress-banner](https://backend.codecrafters.io/progress/shell/c0dde76b-9ec8-4c43-8cfd-c8a04f7c89aa)](https://app.codecrafters.io/users/AditeeySingh?r=2qF)
+# Build Your Own Shell (Java)
 
-This is a starting point for Java solutions to the
-["Build Your Own Shell" Challenge](https://app.codecrafters.io/courses/shell/overview).
+This repository contains my solution for the CodeCrafters **Build Your Own Shell** challenge, implemented in Java.
 
-In this challenge, you'll build your own POSIX compliant shell that's capable of
-interpreting shell commands, running external programs and builtin commands like
-cd, pwd, echo and more. Along the way, you'll learn about shell command parsing,
-REPLs, builtin commands, and more.
+The project is a POSIX-style shell that supports command parsing, built-in commands, execution of external programs, job control, redirection, and pipelines.
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+## Features Implemented
 
-# Passing the first stage
+### Base Shell Stages
+- Interactive REPL loop
+- Command execution
+- External executable discovery using `PATH`
+- Built-in command support
+- Error handling for unknown commands
 
-The entry point for your `shell` implementation is in `src/main/java/Main.java`.
-Study and uncomment the relevant code, then run the command below to execute the
-tests on our servers:
+### Built-in Commands
+- `echo`
+- `pwd`
+- `cd`
+- `type`
+- `exit`
+- `jobs`
 
-```sh
-codecrafters submit
+### Navigation
+- Relative path navigation
+- Absolute path navigation
+- Home directory (`~`) support
+- Working directory management
+
+### Quoting & Parsing
+- Single quotes (`'`)
+- Double quotes (`"`)
+- Escape sequence handling (`\`)
+- Proper tokenization of command arguments
+- Mixed quoted and unquoted argument parsing
+
+### Redirection
+
+#### Standard Output
+- `>`
+- `1>`
+- `>>`
+- `1>>`
+
+#### Standard Error
+- `2>`
+- `2>>`
+
+#### Features
+- File creation
+- File truncation
+- File append mode
+- Separate stdout/stderr handling
+
+### Background Jobs
+- Command execution using `&`
+- Job tracking
+- Job number allocation
+- Job number recycling
+- `jobs` builtin support
+- Background process completion notifications
+- Finished job cleanup
+
+### Pipelines
+
+#### External Pipelines
+- Dual-command pipelines
+- Multi-command pipelines
+- Streaming between processes using `ProcessBuilder.startPipeline()`
+
+Examples:
+
+```bash
+cat file.txt | wc
+cat file.txt | grep hello | wc
+tail -f log.txt | head -n 5
+
+## Pipelines with Built-ins
+
+Support for built-in commands participating in pipelines.
+
+### Examples
+
+```bash
+echo hello | wc
+ls | type exit
+pwd | wc
 ```
 
-Time to move on to the next stage!
+## Technical Highlights
 
-# Stage 2 & beyond
+### Process Management
 
-Note: This section is for stages 2 and beyond.
+- Java ProcessBuilder
+- Background process execution
+- Process lifecycle tracking
+- Process output capture
 
-1. Ensure you have `mvn` installed locally
-1. Run `./your_program.sh` to run your program, which is implemented in
-   `src/main/java/Main.java`.
-1. Run `codecrafters submit` to submit your solution to CodeCrafters. Test
-   output will be streamed to your terminal.
+### File System Operations
+
+- Java NIO (`Path`, `Paths`, `Files`)
+- Directory navigation
+- File creation and modification
+- Stream redirection
+
+### Shell Features
+
+- Command parsing
+- Quote handling
+- Escape character processing
+- Pipeline execution
+- Job control
+
+## Technologies Used
+
+- Java
+- ProcessBuilder API
+- Java NIO
+- Virtual Threads
+- POSIX shell concepts
+
+## Learning Outcomes
+
+Through this project I gained practical experience with:
+
+- Shell architecture and design
+- Command parsing techniques
+- Process creation and management
+- Inter-process communication (IPC)
+- Pipeline implementation
+- Job control systems
+- File descriptor redirection
+- POSIX shell behavior
+- Java ProcessBuilder internals
+
+## Progress
+
+### Completed Stages
+
+- ✅ Base Shell
+- ✅ Navigation
+- ✅ Quoting & Parsing
+- ✅ Redirection
+- ✅ Background Jobs (Full Extension)
+- ✅ Pipelines
+
+### Current Status
+
+Successfully completed all Shell stages up to **Pipelines (Multi-command Pipelines)** in the CodeCrafters Shell challenge.
