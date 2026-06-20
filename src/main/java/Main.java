@@ -25,36 +25,39 @@ public class Main {
          System.out.print("$ ");
 
             String input = scanner.nextLine();
-            if (input.contains("|")) {
-    String[] commands = input.split("\\|", 2);
+           if (input.contains("|")) {
+                String[] commands = input.split("\\|", 2);
 
-    String[] left = parseCommand(commands[0].trim());
-    String[] right = parseCommand(commands[1].trim());
+                String[] left = parseCommand(commands[0].trim());
+                String[] right = parseCommand(commands[1].trim());
 
-    ProcessBuilder pb1 = new ProcessBuilder(left);
-    pb1.directory(currentDirectory.toFile());
+                ProcessBuilder pb1 = new ProcessBuilder(left);
+                pb1.directory(currentDirectory.toFile());
 
-    ProcessBuilder pb2 = new ProcessBuilder(right);
-    pb2.directory(currentDirectory.toFile());
+                ProcessBuilder pb2 = new ProcessBuilder(right);
+                pb2.directory(currentDirectory.toFile());
 
-    Process p1 = pb1.start();
-    Process p2 = pb2.start();
+                Process p1 = pb1.start();
+                Process p2 = pb2.start();
 
-    byte[] leftOutput = p1.getInputStream().readAllBytes();
+                Thread.ofVirtual().start(() -> {
+                    try (
+                        var in = p1.getInputStream();
+                        var out = p2.getOutputStream()
+                    ) {
+                        in.transferTo(out);
+                    } catch (Exception ignored) {
+                    }
+                });
 
-    p2.getOutputStream().write(leftOutput);
-    p2.getOutputStream().close();
+                String result = new String(p2.getInputStream().readAllBytes());
 
-    String result =
-        new String(p2.getInputStream().readAllBytes());
+                System.out.print(result);
 
-    System.out.print(result);
+                p2.waitFor();
 
-    p1.waitFor();
-    p2.waitFor();
-
-    continue;
-}
+                continue;
+            }
 
             if (input.equals("exit") || input.equals("exit 0")) {
                 System.exit(0);
