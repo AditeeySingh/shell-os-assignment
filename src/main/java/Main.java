@@ -53,31 +53,18 @@ public class Main {
             }
 
             if (input.startsWith("echo ")) {
-                String text = input.substring(5);
+                String[] parts = parseCommand(input);
 
-                StringBuilder result = new StringBuilder();
-                boolean inSingleQuote = false;
+                StringBuilder output = new StringBuilder();
 
-                for (int i = 0; i < text.length(); i++) {
-                    char ch = text.charAt(i);
-
-                    if (ch == '\'') {
-                        inSingleQuote = !inSingleQuote;
-                        continue;
+                for (int i = 1; i < parts.length; i++) {
+                    if (i > 1) {
+                        output.append(" ");
                     }
-
-                    if (!inSingleQuote && Character.isWhitespace(ch)) {
-                        while (i + 1 < text.length() &&
-                               Character.isWhitespace(text.charAt(i + 1))) {
-                            i++;
-                        }
-                        result.append(' ');
-                    } else {
-                        result.append(ch);
-                    }
+                    output.append(parts[i]);
                 }
 
-                System.out.println(result.toString().trim());
+                System.out.println(output);
                 continue;
             }
 
@@ -137,17 +124,24 @@ public class Main {
     private static String[] parseCommand(String input) {
         List<String> tokens = new ArrayList<>();
         StringBuilder current = new StringBuilder();
+
         boolean inSingleQuote = false;
+        boolean inDoubleQuote = false;
 
         for (int i = 0; i < input.length(); i++) {
             char ch = input.charAt(i);
 
-            if (ch == '\'') {
+            if (ch == '\'' && !inDoubleQuote) {
                 inSingleQuote = !inSingleQuote;
                 continue;
             }
 
-            if (Character.isWhitespace(ch) && !inSingleQuote) {
+            if (ch == '"' && !inSingleQuote) {
+                inDoubleQuote = !inDoubleQuote;
+                continue;
+            }
+
+            if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
                 if (current.length() > 0) {
                     tokens.add(current.toString());
                     current.setLength(0);
