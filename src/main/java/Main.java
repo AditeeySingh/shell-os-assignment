@@ -66,42 +66,45 @@ for (Integer id : completedJobs) {
                 System.out.println(currentDirectory);
                 continue;
             }
-            if (input.equals("jobs")) {
+         if (input.equals("jobs")) {
+    List<Integer> toRemove = new ArrayList<>();
 
+    for (int i = 0; i < allJobs.size(); i++) {
+        int id = allJobs.get(i);
 
-for (Integer id : new ArrayList<>(jobs.keySet())) {
-    Process process = jobs.get(id);
+        Process process = jobs.get(id);
 
-    if (process != null && !process.isAlive()) {
-        completedJobs.add(id);
+        String marker = " ";
+
+        if (i == allJobs.size() - 1) {
+            marker = "+";
+        } else if (i == allJobs.size() - 2) {
+            marker = "-";
+        }
+
+        if (process != null && process.isAlive()) {
+            System.out.printf(
+                "[%d]%s  Running                 %s &%n",
+                id,
+                marker,
+                jobCommands.get(id)
+            );
+        } else {
+            System.out.printf(
+                "[%d]%s  Done                 %s%n",
+                id,
+                marker,
+                jobCommands.get(id)
+            );
+
+            toRemove.add(id);
+        }
     }
-}
 
-for (int i = 0; i < completedJobs.size(); i++) {
-    int id = completedJobs.get(i);
-
-    String marker = " ";
-
-    if (completedJobs.size() == 1) {
-        marker = "+";
-    } else if (i == completedJobs.size() - 1) {
-        marker = "+";
-    } else if (i == completedJobs.size() - 2) {
-        marker = "-";
+    for (Integer id : toRemove) {
+        jobs.remove(id);
+        jobCommands.remove(id);
     }
-
-    System.out.printf(
-        "[%d]%s  Done                 %s%n",
-        id,
-        marker,
-        jobCommands.get(id)
-    );
-}
-
-for (Integer id : completedJobs) {
-    jobs.remove(id);
-    jobCommands.remove(id);
-}
 
     continue;
 }
