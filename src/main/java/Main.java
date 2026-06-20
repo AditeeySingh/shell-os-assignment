@@ -34,26 +34,30 @@ public class Main {
                 continue;
             }
             if (input.equals("jobs")) {
-    List<Integer> finished = new ArrayList<>();
+                List<Integer> finished = new ArrayList<>();
 
-    for (Map.Entry<Integer, Process> entry : jobs.entrySet()) {
-        int id = entry.getKey();
-        Process process = entry.getValue();
+                for (Map.Entry<Integer, Process> entry : jobs.entrySet()) {
+                    int id = entry.getKey();
+                    Process process = entry.getValue();
 
-        if (process.isAlive()) {
-            System.out.println("[" + id + "] Running\t\t" + jobCommands.get(id));
-        } else {
-            finished.add(id);
-        }
-    }
+                    if (process.isAlive()) {
+                        System.out.printf(
+                            "[%d]+  Running                 %s &%n",
+                            id,
+                            jobCommands.get(id)
+                        );
+                    } else {
+                        finished.add(id);
+                    }
+                }
 
-    for (Integer id : finished) {
-        jobs.remove(id);
-        jobCommands.remove(id);
-    }
+                for (Integer id : finished) {
+                    jobs.remove(id);
+                    jobCommands.remove(id);
+                }
 
-    continue;
-}
+                continue;
+            }
 
             if (input.startsWith("cd ")) {
                 String directory = input.substring(3);
