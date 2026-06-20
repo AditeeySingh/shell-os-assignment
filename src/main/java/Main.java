@@ -58,11 +58,17 @@ public class Main {
                 String[] parts = parseCommand(input);
 
                 String redirectFile = null;
+String stderrRedirectFile = null;
 
 for (int i = 0; i < parts.length; i++) {
     if (parts[i].equals(">") ||
-    parts[i].equals("1>")) {
+        parts[i].equals("1>")) {
         redirectFile = parts[i + 1];
+        break;
+    }
+
+    if (parts[i].equals("2>")) {
+        stderrRedirectFile = parts[i + 1];
         break;
     }
 }
@@ -90,6 +96,15 @@ for (int i = 0; i < parts.length; i++) {
                 if (redirectFile != null) {
     Files.writeString(
             currentDirectory.resolve(redirectFile),
+            "",
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING
+    );
+}
+
+if (stderrRedirectFile != null) {
+    Files.writeString(
+            currentDirectory.resolve(stderrRedirectFile),
             "",
             StandardOpenOption.CREATE,
             StandardOpenOption.TRUNCATE_EXISTING
