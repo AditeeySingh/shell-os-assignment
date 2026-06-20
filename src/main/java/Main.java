@@ -1,6 +1,8 @@
+import java.io.File;
 import java.util.Scanner;
 
 public class Main {
+
     public static void main(String[] args) throws Exception {
         Scanner scanner = new Scanner(System.in);
 
@@ -28,7 +30,13 @@ public class Main {
                 } else if (command.equals("type")) {
                     System.out.println("type is a shell builtin");
                 } else {
-                    System.out.println(command + ": not found");
+                    String path = findExecutable(command);
+
+                    if (path != null) {
+                        System.out.println(command + " is " + path);
+                    } else {
+                        System.out.println(command + ": not found");
+                    }
                 }
 
                 continue;
@@ -36,5 +44,25 @@ public class Main {
 
             System.out.println(input + ": command not found");
         }
+    }
+
+    private static String findExecutable(String command) {
+        String pathEnv = System.getenv("PATH");
+
+        if (pathEnv == null) {
+            return null;
+        }
+
+        String[] paths = pathEnv.split(File.pathSeparator);
+
+        for (String path : paths) {
+            File file = new File(path, command);
+
+            if (file.isFile() && file.canExecute()) {
+                return file.getAbsolutePath();
+            }
+        }
+
+        return null;
     }
 }
