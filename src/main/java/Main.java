@@ -56,7 +56,6 @@ for (Integer id : completedJobs) {
                 continue;
             }
          if (input.equals("jobs")) {
-    List<Integer> allJobs = new ArrayList<>(jobs.keySet());
     List<Integer> toRemove = new ArrayList<>();
 
     for (int i = 0; i < allJobs.size(); i++) {
@@ -64,6 +63,13 @@ for (Integer id : completedJobs) {
 
         Process process = jobs.get(id);
 
+        String marker = " ";
+
+        if (i == allJobs.size() - 1) {
+            marker = "+";
+        } else if (i == allJobs.size() - 2) {
+            marker = "-";
+        }
 
         if (process != null && process.isAlive()) {
             System.out.printf(
