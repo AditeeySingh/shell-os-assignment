@@ -27,35 +27,58 @@ public class Main {
             String input = scanner.nextLine();
            if (input.contains("|")) {
 
-    String[] commandStrings = input.split("\\|");
+    String[] commands = input.split("\\|");
 
-    List<ProcessBuilder> builders = new ArrayList<>();
+    String inputData = null;
 
-    for (String command : commandStrings) {
-        ProcessBuilder pb =
-            new ProcessBuilder(parseCommand(command.trim()));
+    for (String command : commands) {
 
-        pb.directory(currentDirectory.toFile());
+        String[] parts =
+            parseCommand(command.trim());
 
-        builders.add(pb);
+        if (isBuiltin(parts[0])) {
+
+            inputData =
+                executeBuiltin(parts);
+
+        } else {
+
+            ProcessBuilder pb =
+                new ProcessBuilder(parts);
+
+            pb.directory(
+                currentDirectory.toFile()
+            );
+
+            Process process =
+                pb.start();
+
+            if (inputData != null) {
+
+                process.getOutputStream()
+                    .write(inputData.getBytes());
+
+                process.getOutputStream()
+                    .close();
+            }
+
+            inputData =
+                new String(
+                    process.getInputStream()
+                        .readAllBytes()
+                );
+
+            process.waitFor();
+        }
     }
 
-    List<Process> processes =
-        ProcessBuilder.startPipeline(builders);
-
-    Process lastProcess =
-        processes.get(processes.size() - 1);
-
-    lastProcess.getInputStream().transferTo(System.out);
-
-    for (Process process : processes) {
-        process.waitFor();
+    if (inputData != null) {
+        System.out.print(inputData);
     }
-
-    reapJobs();
 
     continue;
-}          if (input.equals("exit") || input.equals("exit 0")) {
+}
+ if (input.equals("exit") || input.equals("exit 0")) {
                 System.exit(0);
             }
 
@@ -408,6 +431,75 @@ private static int getNextJobId() {
 
     return id;
 }
+
+        private static boolean isBuiltin(String command) {
+
+            return command.equals("echo")
+
+                || command.equals("pwd")
+
+                || command.equals("type")
+
+                || command.equals("cd")
+
+                || command.equals("jobs");
+
+            }
+            private static String executeBuiltin(String[] parts) {
+
+                if (parts[0].equals("echo")) {
+
+                    StringBuilder output = new StringBuilder();
+
+                    for (int i = 1; i < parts.length; i++) {
+                        if (i > 1) {
+                            output.append(" ");
+                        }
+
+                        output.append(parts[i]);
+                    }
+
+                    return output + System.lineSeparator();
+                }
+
+                if (parts[0].equals("pwd")) {
+                    return currentDirectory.toString()
+                        + System.lineSeparator();
+                }
+
+                if (parts[0].equals("type")) {
+
+                    String command = parts[1];
+
+                    if (command.equals("echo")
+                        || command.equals("exit")
+                        || command.equals("type")
+                        || command.equals("pwd")
+                        || command.equals("cd")
+                        || command.equals("jobs")) {
+
+                        return command
+                            + " is a shell builtin"
+                            + System.lineSeparator();
+                    }
+
+                    String path = findExecutable(command);
+
+                    if (path != null) {
+                        return command
+                            + " is "
+                            + path
+                            + System.lineSeparator();
+                    }
+
+                    return command
+                        + ": not found"
+                        + System.lineSeparator();
+                }
+
+                return "";
+            }
+
     private static String[] parseCommand(String input) {
         List<String> tokens = new ArrayList<>();
         StringBuilder current = new StringBuilder();
