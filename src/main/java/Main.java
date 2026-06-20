@@ -21,6 +21,39 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
+            List<Integer> completedJobs = new ArrayList<>();
+
+List<Integer> allJobs = new ArrayList<>(jobs.keySet());
+
+for (int i = 0; i < allJobs.size(); i++) {
+    int id = allJobs.get(i);
+
+    Process process = jobs.get(id);
+
+    if (!process.isAlive()) {
+        String marker = " ";
+
+        if (i == allJobs.size() - 1) {
+            marker = "+";
+        } else if (i == allJobs.size() - 2) {
+            marker = "-";
+        }
+
+        System.out.printf(
+            "[%d]%s  Done                 %s%n",
+            id,
+            marker,
+            jobCommands.get(id)
+        );
+
+        completedJobs.add(id);
+    }
+}
+
+for (Integer id : completedJobs) {
+    jobs.remove(id);
+    jobCommands.remove(id);
+}
             System.out.print("$ ");
 
             String input = scanner.nextLine();
@@ -36,7 +69,6 @@ public class Main {
             if (input.equals("jobs")) {
     List<Integer> toRemove = new ArrayList<>();
 
-    List<Integer> allJobs = new ArrayList<>(jobs.keySet());
 
     for (int i = 0; i < allJobs.size(); i++) {
         int id = allJobs.get(i);
