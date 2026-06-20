@@ -254,6 +254,24 @@ if (redirectIndex != -1) {
                         jobs.put(jobId, process);
                         jobCommands.put(jobId, input);
 
+                        Thread.ofVirtual().start(() -> {
+                            try {
+                                String stdout = new String(process.getInputStream().readAllBytes());
+                                String stderr = new String(process.getErrorStream().readAllBytes());
+
+                                process.waitFor();
+
+                                if (!stdout.isEmpty()) {
+                                    System.out.print(stdout);
+                                }
+
+                                if (!stderr.isEmpty()) {
+                                    System.err.print(stderr);
+                                }
+                            } catch (Exception ignored) {
+                            }
+                        });
+
                         System.out.println("[" + jobId + "] " + process.pid());
                         continue;
                     }
