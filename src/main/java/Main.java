@@ -72,8 +72,8 @@ public class Main {
                                 jobCommands.get(id)
                             );
                         } else {
-                            System.out.printf(
-                                "[%d]%s  Done                    %s &%n",
+                           System.out.printf(
+                                "[%d]%s  Done                 %s%n",
                                 id,
                                 marker,
                                 jobCommands.get(id)
