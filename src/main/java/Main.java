@@ -1,9 +1,12 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
 public class Main {
+
+    private static Path currentDirectory = Paths.get(System.getProperty("user.dir"));
 
     public static void main(String[] args) throws Exception {
         Scanner scanner = new Scanner(System.in);
@@ -18,7 +21,21 @@ public class Main {
             }
 
             if (input.equals("pwd")) {
-                System.out.println(Paths.get("").toAbsolutePath().normalize());
+                System.out.println(currentDirectory);
+                continue;
+            }
+
+            if (input.startsWith("cd ")) {
+                String directory = input.substring(3);
+
+                Path newPath = Paths.get(directory);
+
+                if (newPath.isAbsolute() && newPath.toFile().isDirectory()) {
+                    currentDirectory = newPath.normalize();
+                } else {
+                    System.out.println("cd: " + directory + ": No such file or directory");
+                }
+
                 continue;
             }
 
@@ -38,6 +55,8 @@ public class Main {
                     System.out.println("type is a shell builtin");
                 } else if (command.equals("pwd")) {
                     System.out.println("pwd is a shell builtin");
+                } else if (command.equals("cd")) {
+                    System.out.println("cd is a shell builtin");
                 } else {
                     String path = findExecutable(command);
 
@@ -57,12 +76,15 @@ public class Main {
             if (executable != null) {
                 try {
                     ProcessBuilder processBuilder = new ProcessBuilder(parts);
+                    processBuilder.directory(currentDirectory.toFile());
+
                     Process process = processBuilder.start();
                     process.getInputStream().transferTo(System.out);
                     process.waitFor();
                 } catch (IOException e) {
                     System.out.println(input + ": command not found");
                 }
+
                 continue;
             }
 
