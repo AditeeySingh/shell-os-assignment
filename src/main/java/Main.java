@@ -152,21 +152,25 @@ public class Main {
 
                     Process process = processBuilder.start();
 
-                    String output =
-                            new String(process.getInputStream().readAllBytes());
+                    String stdout = new String(process.getInputStream().readAllBytes());
+                    String stderr = new String(process.getErrorStream().readAllBytes());
 
-                    process.waitFor();
+                        process.waitFor();
 
-                    if (redirectFile != null) {
-                        Files.writeString(
-                                currentDirectory.resolve(redirectFile),
-                                output,
-                                StandardOpenOption.CREATE,
-                                StandardOpenOption.TRUNCATE_EXISTING
-                        );
-                    } else {
-                        System.out.print(output);
-                    }
+                        if (redirectFile != null) {
+                            Files.writeString(
+                                    currentDirectory.resolve(redirectFile),
+                                    stdout,
+                                    StandardOpenOption.CREATE,
+                                    StandardOpenOption.TRUNCATE_EXISTING
+                            );
+                        } else {
+                            System.out.print(stdout);
+                        }
+
+                        if (!stderr.isEmpty()) {
+                            System.err.print(stderr);
+                        }
                 } catch (IOException e) {
                     System.out.println(input + ": command not found");
                 }
