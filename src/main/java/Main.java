@@ -122,41 +122,49 @@ public class Main {
     }
 
     private static String[] parseCommand(String input) {
-        List<String> tokens = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
+    List<String> tokens = new ArrayList<>();
+    StringBuilder current = new StringBuilder();
 
-        boolean inSingleQuote = false;
-        boolean inDoubleQuote = false;
+    boolean inSingleQuote = false;
+    boolean inDoubleQuote = false;
 
-        for (int i = 0; i < input.length(); i++) {
-            char ch = input.charAt(i);
+    for (int i = 0; i < input.length(); i++) {
+        char ch = input.charAt(i);
 
-            if (ch == '\'' && !inDoubleQuote) {
-                inSingleQuote = !inSingleQuote;
-                continue;
+        if (ch == '\\' && !inSingleQuote && !inDoubleQuote) {
+            if (i + 1 < input.length()) {
+                current.append(input.charAt(i + 1));
+                i++;
             }
-
-            if (ch == '"' && !inSingleQuote) {
-                inDoubleQuote = !inDoubleQuote;
-                continue;
-            }
-
-            if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
-                if (current.length() > 0) {
-                    tokens.add(current.toString());
-                    current.setLength(0);
-                }
-            } else {
-                current.append(ch);
-            }
+            continue;
         }
 
-        if (current.length() > 0) {
-            tokens.add(current.toString());
+        if (ch == '\'' && !inDoubleQuote) {
+            inSingleQuote = !inSingleQuote;
+            continue;
         }
 
-        return tokens.toArray(new String[0]);
+        if (ch == '"' && !inSingleQuote) {
+            inDoubleQuote = !inDoubleQuote;
+            continue;
+        }
+
+        if (Character.isWhitespace(ch) && !inSingleQuote && !inDoubleQuote) {
+            if (current.length() > 0) {
+                tokens.add(current.toString());
+                current.setLength(0);
+            }
+        } else {
+            current.append(ch);
+        }
     }
+
+    if (current.length() > 0) {
+        tokens.add(current.toString());
+    }
+
+    return tokens.toArray(new String[0]);
+}
 
     private static String findExecutable(String command) {
         String pathEnv = System.getenv("PATH");
