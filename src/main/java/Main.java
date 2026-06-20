@@ -41,7 +41,7 @@ public class Main {
         Process process = entry.getValue();
 
         if (process.isAlive()) {
-            System.out.println("[" + id + "] Running " + jobCommands.get(id));
+            System.out.println("[" + id + "] " + jobCommands.get(id) + " &");
         } else {
             finished.add(id);
         }
