@@ -28,6 +28,11 @@ public class Main {
             if (input.startsWith("cd ")) {
                 String directory = input.substring(3);
 
+                if (directory.equals("~")) {
+                    currentDirectory = Paths.get(System.getProperty("user.home"));
+                    continue;
+                }
+
                 Path newPath;
 
                 if (Paths.get(directory).isAbsolute()) {
