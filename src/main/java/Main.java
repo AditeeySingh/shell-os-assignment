@@ -38,6 +38,11 @@ for (Integer id : currentJobs) {
         completedJobs.add(id);
     }
 }
+
+for (Integer id : completedJobs) {
+    jobs.remove(id);
+    jobCommands.remove(id);
+}
          System.out.print("$ ");
 
             String input = scanner.nextLine();
