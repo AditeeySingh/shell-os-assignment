@@ -51,13 +51,32 @@ public class Main {
             }
 
             if (input.startsWith("echo ")) {
-                 String text = input.substring(5);
+    String text = input.substring(5);
 
-                     if (text.startsWith("'") && text.endsWith("'")) {
-                         text = text.substring(1, text.length() - 1);
-                     } else {
-                 text = String.join(" ", text.trim().split("\\s+"));
+    StringBuilder result = new StringBuilder();
+    boolean inSingleQuote = false;
+
+    for (int i = 0; i < text.length(); i++) {
+        char ch = text.charAt(i);
+
+        if (ch == '\'') {
+            inSingleQuote = !inSingleQuote;
+            continue;
+        }
+
+        if (!inSingleQuote && Character.isWhitespace(ch)) {
+            while (i + 1 < text.length() && Character.isWhitespace(text.charAt(i + 1))) {
+                i++;
             }
+            result.append(' ');
+        } else {
+            result.append(ch);
+        }
+    }
+
+    System.out.println(result.toString().trim());
+    continue;
+}
 
     System.out.println(text);
     continue;
